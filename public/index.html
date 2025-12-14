@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReadToMe - Document Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #121212;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #1E1E1E;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #4A9FD8;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #B0B0B0;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .upload-zone {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid #4A9FD8;
+            border-radius: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            background: #2A2A2A;
+        }
+
+        .upload-zone:hover {
+            border-color: #5AB0E8;
+            background: #333333;
+        }
+
+        .upload-zone.dragover {
+            background: #3A3A3A;
+            border-color: #5AB0E8;
+        }
+
+        .upload-icon {
+            font-size: 1.5rem;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+            color: #E0E0E0;
+            font-weight: 600;
+        }
+
+        .document-info {
+            display: none;
+            background: #2A2A2A;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .document-info.active {
+            display: block;
+        }
+
+        .document-name {
+            font-weight: bold;
+            color: #E0E0E0;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .document-stats {
+            color: #B0B0B0;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .controls {
+            display: none;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .controls.active {
+            display: flex;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #4A9FD8;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 159, 216, 0.4);
+            background: #5AB0E8;
+        }
+
+        .btn-secondary {
+            background: #3A3A3A;
+            color: #4A9FD8;
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: #4A4A4A;
+        }
+
+        .btn-danger {
+            background: #3A3A3A;
+            color: #e53e3e;
+            flex: 1;
+        }
+
+        .btn-danger:hover {
+            background: #4A4A4A;
+        }
+
+        .progress {
+            display: none;
+            background: #2A2A2A;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-text {
+            color: #4A9FD8;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar-container {
+            background: #1E1E1E;
+            border-radius: 5px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: #4A9FD8;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .tts-settings {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #3A3A3A;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            font-weight: 600;
+            color: #E0E0E0;
+            margin-bottom: 8px;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #3A3A3A;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #2A2A2A;
+            color: #E0E0E0;
+        }
+
+        .setting-range {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .range-value {
+            color: #4A9FD8;
+            font-weight: 600;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .document-list {
+            margin-top: 20px;
+        }
+
+        .document-item {
+            background: #2A2A2A;
+            border: 2px solid #3A3A3A;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .document-item:hover {
+            border-color: #4A9FD8;
+        }
+
+        .document-item-info {
+            flex: 1;
+        }
+
+        .document-item-name {
+            font-weight: 600;
+            color: #E0E0E0;
+            margin-bottom: 5px;
+        }
+
+        .document-item-meta {
+            font-size: 0.85rem;
+            color: #B0B0B0;
+        }
+
+        .document-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ReadToMe</h1>
+        <p class="subtitle">Upload documents and listen to them read aloud</p>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">+ Add Document</div>
+        </div>
+
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" multiple onchange="handleFileUpload(event)">
+
+        <!-- Document Info -->
+        <div class="document-info" id="documentInfo">
+            <div class="document-name" id="documentName"></div>
+            <div class="document-stats" id="documentStats"></div>
+        </div>
+
+        <!-- TTS Controls -->
+        <div class="controls" id="controls">
+            <button class="btn-primary" id="playBtn" onclick="playDocument()">
+                ▶️ Play
+            </button>
+            <button class="btn-secondary" id="pauseResumeBtn" onclick="togglePauseResume()" style="display: none;">
+                ⏸️ Pause
+            </button>
+            <button class="btn-danger" id="stopBtn" onclick="stopReading()" style="display: none;">
+                ⏹️ Stop
+            </button>
+        </div>
+
+        <!-- Skip Controls -->
+        <div class="controls" id="skipControls" style="display: none;">
+            <button class="btn-secondary btn-small" onclick="skipParagraph(-1)">
+                ⏮️ Previous
+            </button>
+            <button class="btn-secondary btn-small" onclick="skipParagraph(1)">
+                ⏭️ Next
+            </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress" id="progress">
+            <div class="progress-text" id="progressText">Reading paragraph 1 of 10...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- Stored Documents (Favorites) -->
+        <div class="document-list" id="documentList" style="display: none;">
+            <h3 style="margin-bottom: 15px; color: #4A9FD8;">⭐ Favorites</h3>
+        </div>
+
+        <!-- TTS Settings -->
+        <div class="tts-settings">
+            <h3 style="margin-bottom: 20px; color: #4A9FD8;">Voice Settings</h3>
+
+            <div class="setting-group">
+                <label class="setting-label">
+                    Speed: <span class="range-value" id="speedValue">1.0x</span>
+                </label>
+                <input type="range" class="setting-range" id="speedRange"
+                       min="0.5" max="2.0" step="0.1" value="1.0"
+                       oninput="updateSpeed(this.value)">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">
+                    Pitch: <span class="range-value" id="pitchValue">1.0</span>
+                </label>
+                <input type="range" class="setting-range" id="pitchRange"
+                       min="0.5" max="2.0" step="0.1" value="1.0"
+                       oninput="updatePitch(this.value)">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">
+                    Volume: <span class="range-value" id="volumeValue">100%</span>
+                </label>
+                <input type="range" class="setting-range" id="volumeRange"
+                       min="0" max="100" step="5" value="100"
+                       oninput="updateVolume(this.value)">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Voice</label>
+                <select class="setting-input" id="voiceSelect" onchange="updateVoice()">
+                    <option value="">Loading voices...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- PDF.js (local) -->
+    <script src="libs/pdf.min.js"></script>
+
+    <!-- Mammoth.js for DOCX (local) -->
+    <script src="libs/mammoth.browser.min.js"></script>
+
+    <!-- App scripts -->
+    <script src="storage.js"></script>
+    <script src="document-extraction.js"></script>
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
